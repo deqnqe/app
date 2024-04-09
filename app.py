@@ -1,20 +1,16 @@
 from flask import Flask, render_template, request
 import mysql.connector
 from datetime import datetime
-from test4 import extract_article_info
-from test4 import save_articles_to_db
-
 app = Flask(__name__)
 url = "https://tengrinews.kz/"
-scraped_articles = extract_article_info(url)
-save_articles_to_db(scraped_articles)
+
 
 def get_articles_from_db(tags):
     config = {
         'user': 'root',
         'password': '12345',
         'host': 'localhost',
-        'database': 'tengri',
+        'database': 'news',
         'raise_on_warnings': True
     }
     
@@ -23,7 +19,7 @@ def get_articles_from_db(tags):
     query = "SELECT * FROM articles WHERE tags LIKE %s ORDER BY timestamp DESC LIMIT 20"
     cursor.execute(query, ("%{}%".format(tags),))
     articles = cursor.fetchall()
-    filtered_articles = [article for article in articles if article['content'] and article['image'] and article['title'] and article['timestamp'] and article['url'] and article['views'] and article['content'] and article['tags']]
+    filtered_articles = [article for article in articles if article['content'] and article['image'] and article['title'] and article['timestamp'] and article['url'] and article['content'] and article['tags']]
     cursor.close()
     conn.close()
 
@@ -56,7 +52,7 @@ def get_article_by_id(article_id):
         'user': 'root',
         'password': '12345',
         'host': 'localhost',
-        'database': 'tengri',
+        'database': 'news',
         'raise_on_warnings': True
     }
     
@@ -85,7 +81,7 @@ def search_articles_in_db(query):
         'user': 'root',
         'password': '12345',
         'host': 'localhost',
-        'database': 'tengri',
+        'database': 'news',
         'raise_on_warnings': True
     }
     
