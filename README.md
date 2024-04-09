@@ -28,7 +28,7 @@
   ```
 
 3. **Запуск Приложения Flask**
-В файле app.py в функциях get_article_by_id(article_id) и get_articles_from_db(tags) и в файле test5.py в функции save_articles_to_db(articles)поменять значения полей user, password, host, database, и создать схему news в MySQL чтобы подключиться к локальному MySQL. 
+В файле app.py в функциях get_article_by_id(article_id), search_articles_in_db(query) и get_articles_from_db(tags) и в файле test5.py в функции save_articles_to_db(articles)поменять значения полей user, password, host, database, и создать схему news в MySQL чтобы подключиться к локальному MySQL. 
 Запустить программу test5.py для парсинга сайта tengrinew.kz
 Ввести в терминале команду 
 ```flask run```
