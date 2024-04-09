@@ -1,20 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import mysql.connector
+#import psycopg2
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
-from selenium.webdriver.chrome.options import Options
-chrome_options = Options()
-chrome_options.add_argument('--log-level=3')  
-chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])  
-
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+import mysql.connector
 
 months = {
     "января": 1,
@@ -40,13 +29,9 @@ def parse_publication_date(date_str):
         yesterday = datetime.now() - timedelta(days=1)
         publication_date = yesterday.replace(hour=int(time_part.split(":")[0]), minute=int(time_part.split(":")[1]), second=0, microsecond=0)
     else:
-        # Parse the custom date format
         date_parts = date_str.split()
-        # Translate the month name to a number
-        month_number = months.get(date_parts[1].lower(), 1)  # Default to January if not found
-        # Construct the date string in a format that strptime can understand
+        month_number = months.get(date_parts[1].lower(), 1) 
         date_string = f"{date_parts[0]} {month_number} {date_parts[2]} {date_parts[3]}"
-        # Parse the date string into a datetime object
         publication_date = datetime.strptime(date_string, "%d %m %Y %H:%M")
     
     return publication_date.isoformat()
@@ -64,14 +49,10 @@ def extract_tag_from_url(url):
     return tag
 
 def extract_article_info(url):
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    driver.get(url)
-
-    wait = WebDriverWait(driver, 30)
-    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".content_item_meta_viewings .tn-text-preloader-dark")))
-
-    soup = BeautifulSoup(driver.page_source, "html.parser")
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
     articles = []
+
 
     for article_element in soup.find_all("div", class_="main-news_top_item"):
         title_element = article_element.find("span", class_="main-news_top_item_title")
@@ -108,17 +89,7 @@ def extract_article_info(url):
                 timestamp = parse_publication_date(time_element.text.strip())
             if time_element is None:
                 timestamp = None
-            
-        '''if link_element:
-            parsed_url = urlparse(link_element['href'])
-            # Split the domain name (netloc) into parts
-            domain_parts = parsed_url.netloc.split('.')[0]
-            if domain_parts == 'tengrinews':
-                tag = parsed_url.path.strip("/").split("/")[0]
-            else:
-                tag = domain_parts
-        else:
-            tag = None'''
+         
         tag = "tengrinews"  
         logo_element_link = article_soup.find("a", class_="menu_logo")
         if logo_element_link:  
@@ -154,7 +125,6 @@ def extract_article_info(url):
 
         articles.append(article_info)
 
-    driver.quit()
     return articles
 
 def save_articles_to_db(articles):
@@ -162,7 +132,8 @@ def save_articles_to_db(articles):
         'user': 'root',
         'password': '12345',
         'host': 'localhost',
-        'database': 'tengri'
+        'database': 'news',
+        'raise_on_warnings': True
     }
 
     conn = mysql.connector.connect(**config)
@@ -170,14 +141,14 @@ def save_articles_to_db(articles):
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS articles (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             title TEXT,
             image TEXT,
             timestamp TEXT,
             views TEXT,
             comments TEXT,
             url TEXT,
-            content LONGTEXT,
+            content TEXT,
             tags TEXT
         )
     """)
@@ -186,11 +157,10 @@ def save_articles_to_db(articles):
     cursor.execute(existing_urls_query)
     existing_urls = set(row[0] for row in cursor.fetchall())
 
-
     for article in articles:
         if article["url"] in existing_urls:
             print(f"Article already exists: {article['url']}")
-            continue  # Skip this article
+            continue  
 
         cursor.execute("""
             INSERT INTO articles (title, image, timestamp, views, comments, url, content, tags)
