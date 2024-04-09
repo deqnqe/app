@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tengri News</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        
+
+        <div class="header-content">
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="{{ url_for('index', tags='tengrinews') }}" class="{{ 'active' if current_tag == 'tengrinews' else '' }}">NEWS</a></li>
+                    <li><a href="{{ url_for('index', tags='tengrilife') }}" class="{{ 'active' if current_tag == 'tengrilife' else '' }}">LIFE</a></li>
+                    <li><a href="{{ url_for('index', tags='tengrisport') }}" class="{{ 'active' if current_tag == 'tengrisport' else '' }}">SPORT</a></li>
+                    <li><a href="{{ url_for('index', tags='tengritravel') }}" class="{{ 'active' if current_tag == 'tengritravel' else '' }}">TRAVEL</a></li>
+                    <li><a href="{{ url_for('index', tags='tengriedu') }}" class="{{ 'active' if current_tag == 'tengriedu' else '' }}">EDU</a></li>
+                    <li><a href="{{ url_for('index', tags='tengriauto') }}" class="{{ 'active' if current_tag == 'tengriauto' else '' }}">AUTO</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-contact">
+                <span>Редакция +7 (777) 001 44 99</span>
+                <span>Реклама</span>
+            </div>
+            <div class="search-container">
+                <span class="country-code">KZ</span>
+            </div>
+        </div>
+    </header>
+    <div class="branding-container">
+        <a href="/" class="logo-link">
+            <img src="{{ url_for('static', filename='css/images/log.png') }}" alt="TENGRI NEWS" class="logo-image">
+        </a>
+        <div class="logo-name">TENGRI NEWS</div>
+        <form action="{{ url_for('search_results') }}" method="GET" class="search-form">
+            <input type="text" name="query" placeholder="Поиск новостей ...">
+            <button type="submit">Поиск</button>
+        </form>
+    </div>
+    <div class="news-grid">
+        {% for article in articles %}
+            <div class="news-item">
+                <img src="https://tengrinews.kz{{ article.image }}" alt="Article Image">
+                <div class="article-info">
+                    <h2><a href="{{ url_for('article', article_id=article.id) }}">{{ article.title }}</a></h2>
+                    <div class="article-meta">
+                        <span>{{ article.formatted_timestamp }}</span>
+                        <span>Views: {{ article.views }}</span>
+                        <span>Comments: {{ article.comments }}</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
